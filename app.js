@@ -29,17 +29,27 @@ io.on("connection", (uniquesocket) => {
     uniquesocket.emit("playerRole", "w");
   } else if (!players.black) {
     players.black = uniquesocket.id;
-    uniquesocket.emit("playerRole", "w");
+    uniquesocket.emit("playerRole", "b");
   } else {
     uniquesocket.emit("spectatorRole");
   }
 
   uniquesocket.on("disconnect", () => {
+    console.log(`Socket ${uniquesocket.id} disconnected`);
+
+    // Remove disconnected player
     if (uniquesocket.id === players.white) {
       delete players.white;
+      console.log("White player disconnected");
+      io.emit("playerLeft", { role: "w" });
     } else if (uniquesocket.id === players.black) {
       delete players.black;
+      console.log("Black player disconnected");
+      io.emit("playerLeft", { role: "b" });
     }
+
+    // Notify all clients about the updated player roles
+    io.emit("updateRoles", players);
   });
 
   uniquesocket.on("move", (move) => {
@@ -52,6 +62,21 @@ io.on("connection", (uniquesocket) => {
         currentPlayer = chess.turn();
         io.emit("move", move);
         io.emit("boardState", chess.fen());
+
+        // Game end checks
+        if (chess.in_checkmate()) {
+          io.emit("gameOver", {
+            winner: currentPlayer === "w" ? "Black" : "White",
+            reason: "checkmate",
+          });
+          chess.reset();
+        } else if (chess.in_stalemate()) {
+          io.emit("gameOver", { reason: "stalemate" });
+          chess.reset();
+        } else if (chess.in_draw()) {
+          io.emit("gameOver", { reason: "draw" });
+          chess.reset();
+        }
       } else {
         console.log("Invalid move: ", move);
         uniquesocket.emit("invalidMove", move);
@@ -60,6 +85,11 @@ io.on("connection", (uniquesocket) => {
       console.log(err);
       uniquesocket.emit("invalidMove", move);
     }
+  });
+
+  uniquesocket.on("restartGame", () => {
+    chess.reset();
+    io.emit("boardState", chess.fen());
   });
 });
 
