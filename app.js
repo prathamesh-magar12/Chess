@@ -37,7 +37,7 @@ io.on("connection", (uniquesocket) => {
   uniquesocket.on("disconnect", () => {
     console.log(`Socket ${uniquesocket.id} disconnected`);
 
-    // Remove disconnected player
+    //Remove disconnected player
     if (uniquesocket.id === players.white) {
       delete players.white;
       console.log("White player disconnected");
@@ -48,7 +48,7 @@ io.on("connection", (uniquesocket) => {
       io.emit("playerLeft", { role: "b" });
     }
 
-    // Notify all clients about the updated player roles
+    //Notify all clients about the updated player roles
     io.emit("updateRoles", players);
   });
 
