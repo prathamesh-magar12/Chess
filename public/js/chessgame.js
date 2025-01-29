@@ -86,11 +86,24 @@ const renderBoard = () => {
   }
 };
 
+// const handleMove = (source, target) => {
+//   const move = {
+//     from: `${String.fromCharCode(97 + source.col)}${8 - source.row}`,
+//     to: `${String.fromCharCode(97 + target.col)}${8 - target.row}`,
+//     promotion: "q",
+//   };
+//   socket.emit("move", move);
+// };
 const handleMove = (source, target) => {
+  const fromRow = playerRole === "b" ? 7 - source.row : source.row;
+  const fromCol = playerRole === "b" ? 7 - source.col : source.col;
+  const toRow = playerRole === "b" ? 7 - target.row : target.row;
+  const toCol = playerRole === "b" ? 7 - target.col : target.col;
+
   const move = {
-    from: `${String.fromCharCode(97 + source.col)}${8 - source.row}`,
-    to: `${String.fromCharCode(97 + target.col)}${8 - target.row}`,
-    promotion: "q",
+    from: `${String.fromCharCode(97 + fromCol)}${8 - fromRow}`,
+    to: `${String.fromCharCode(97 + toCol)}${8 - toRow}`,
+    promotion: "q", // Auto-queen for now
   };
   socket.emit("move", move);
 };
@@ -116,6 +129,11 @@ const getPieceUnicode = (piece) => {
 socket.on("spectatorRole", function () {
   playerRole = null;
   renderBoard();
+
+  // Remove existing messages
+  const existingMessage = document.getElementById("spectator-message");
+  if (existingMessage) existingMessage.remove();
+
   document.body.insertAdjacentHTML(
     "beforeend",
     `<div id="spectator-message" style="
@@ -147,10 +165,28 @@ socket.on("boardState", function (fen) {
   renderBoard();
 });
 
+// socket.on("move", function (move) {
+//   chess.move(move);
+//   renderBoard();
+// });
+let capturedPieces = { w: [], b: [] };
 socket.on("move", function (move) {
-  chess.move(move);
+  const previousBoard = chess.fen();
+  const result = chess.move(move);
+
+  if (result.captured) {
+    capturedPieces[result.color === "w" ? "b" : "w"].push(result.captured);
+  }
+
   renderBoard();
+  updateCapturedPieces();
 });
+function updateCapturedPieces() {
+  document.getElementById("captured-white").innerText =
+    capturedPieces.w.join(" ");
+  document.getElementById("captured-black").innerText =
+    capturedPieces.b.join(" ");
+}
 
 socket.on("gameOver", (data) => {
   let message;
@@ -166,6 +202,10 @@ socket.on("gameOver", (data) => {
 
   // Show restart button
   restartButton.style.display = "block";
+
+  // Fix: Remove previous event listeners before adding a new one
+  restartButton.replaceWith(restartButton.cloneNode(true));
+  restartButton = document.getElementById("restart-game");
 
   restartButton.addEventListener("click", () => {
     socket.emit("restartGame");
