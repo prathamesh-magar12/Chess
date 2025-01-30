@@ -62,21 +62,6 @@ io.on("connection", (uniquesocket) => {
         currentPlayer = chess.turn();
         io.emit("move", move);
         io.emit("boardState", chess.fen());
-
-        // Game end checks
-        if (chess.in_checkmate()) {
-          io.emit("gameOver", {
-            winner: currentPlayer === "w" ? "Black" : "White",
-            reason: "checkmate",
-          });
-          chess.reset();
-        } else if (chess.in_stalemate()) {
-          io.emit("gameOver", { reason: "stalemate" });
-          chess.reset();
-        } else if (chess.in_draw()) {
-          io.emit("gameOver", { reason: "draw" });
-          chess.reset();
-        }
       } else {
         console.log("Invalid move: ", move);
         uniquesocket.emit("invalidMove", move);
@@ -85,11 +70,6 @@ io.on("connection", (uniquesocket) => {
       console.log(err);
       uniquesocket.emit("invalidMove", move);
     }
-  });
-
-  uniquesocket.on("restartGame", () => {
-    chess.reset();
-    io.emit("boardState", chess.fen());
   });
 });
 

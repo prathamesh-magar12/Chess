@@ -65,27 +65,6 @@
     <div class="w-full h-screen flex items-center justify-center bg-zinc-900">
       <div class="chessboard w-96 h-96 bg-red-400"></div>
     </div>
-    <button id="restart-game" style="
-      position: absolute;
-      top: 50px;
-      left: 50%;
-      transform: translateX(-50%);
-      padding: 10px 20px;
-      background-color: #4caf50;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      display: none;
-    ">Restart Game</button>
-    <div id="captured-pieces">
-        <div id="captured-black"></div>
-        <div class="chessboard w-96 h-96 bg-red-400"></div>
-        <div id="captured-white"></div>
-    </div>
-    <div id="turn-indicator" class="text-center text-white text-lg"></div>
-
-      
     <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
     <script src="/js/chessgame.js"></script>
