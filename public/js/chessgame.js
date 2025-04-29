@@ -1,4 +1,4 @@
-//client-side
+// client-side
 
 const socket = io();
 const chess = new Chess();
